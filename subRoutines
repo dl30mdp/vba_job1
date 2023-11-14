@@ -1,0 +1,18 @@
+Public Sub openFile(sFile As String)
+    
+    'Dim sFile As String
+    'sFile = "C:\docs\data.xlsx"
+    
+    'Use Dir to check if file exists
+    If Dir(sFile) = vbNullString Then
+
+        'if file does not exist display message
+        MsgBox "Could not find the file " & sFile
+        Exit Sub
+
+    End If
+    
+    'Code will only reach here if file exists
+    Workbooks.Open sFile
+    
+End Sub
