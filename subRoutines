@@ -1,3 +1,4 @@
+'Open files
 Public Sub openFile(sFile As String)
     
     'Dim sFile As String
@@ -16,3 +17,28 @@ Public Sub openFile(sFile As String)
     Workbooks.Open sFile
     
 End Sub
+
+'Convert .csv to .xlsx
+Public Sub convertCsvToXlsx()
+
+    Dim folderSelection As FileDialog: Set folderSelection = Application.FileDialog(msoFileDialogFolderPicker)
+    
+    With folderSelection
+        .AllowMultiSelect = False
+        .Title = "Select the folder with CSV Files"
+        .Show
+        If .SelectedItems.Count = 0 Then Exit Sub
+    End With
+
+    'error handling
+    On Error GoTo errorHandler
+
+
+
+errorHandler:
+
+    MsgBox "The following error has occurred: " & vbCrLf & vbCrLf & "Error Number:" & Err.Number & vbCrLf & _
+    "Error Description: " & Err.Description
+
+End Sub
+
