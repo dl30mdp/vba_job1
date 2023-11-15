@@ -43,7 +43,7 @@ Public Sub convertCsvToXlsx()
 
     For each wb in iWorkbook
 
-        Call openFile(iFile)
+        Call openFile(iFilePath)
 
     Next workbook
 
