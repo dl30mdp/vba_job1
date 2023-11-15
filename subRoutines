@@ -44,8 +44,11 @@ Public Sub convertCsvToXlsx()
     For each wb in iWorkbook
 
         Call openFile(iFilePath)
+        iFileName = CreateObject("Scripting.FileSystemObject").GetBaseName(iFile)
 
-    Next workbook
+        'xlsx saveAs
+    
+    Next wb
 
 
 
