@@ -1,5 +1,5 @@
 'Open files
-Public Sub openFile(iFilePath As String)
+Private Sub openFile(iFilePath As String)
     
     'Dim iFilePath As String
     'sFile = "C:\docs\data.xlsx"
@@ -19,7 +19,7 @@ Public Sub openFile(iFilePath As String)
 End Sub
 
 'Convert .csv to .xlsx
-Public Sub convertCsvToXlsx()
+Private Sub convertCsvToXlsx()
 
     Dim folderSelection As FileDialog: Set folderSelection = Application.FileDialog(msoFileDialogFolderPicker)
     
@@ -34,11 +34,11 @@ Public Sub convertCsvToXlsx()
     On Error GoTo errorHandler
 
     'set up loop through iPath
-    Dim iFolder As String: iFolder = folderSelection.SelectedItem(1) & "\"
+    Dim iFolder As String: iFolder = folderSelection.SelectedItems(1) & "\"
     Dim iExt As String: iExt = "*.csv"
-    Dim iFile As Stirng: iFile = Dir(iFolder & iExt)
+    Dim iFile As String: iFile = Dir(iFolder & iExt)
     Dim iFileName As String
-    Dim iFilePath As String: iFolder & iFile
+    Dim iFilePath As String: iFilePath = iFolder & iFile
     Dim iWorkbook As Workbook: Set iWorkbook = worksbooks.open(FileName:= iFilePath, ReadOnly:= True)
 
     For each wb in iWorkbook
@@ -47,15 +47,24 @@ Public Sub convertCsvToXlsx()
         iFileName = CreateObject("Scripting.FileSystemObject").GetBaseName(iFile)
 
         'xlsx saveAs
-    
+        iWorkbook.SaveAs iFolder & iFileName & ".xlsx", FileFormat:=xlOpenXMLWorkbook
+        
+        'closes newly converted xlsx file
+        ActiveWorkbook.Close savechanges:= False
+
+        'deletes the csv file
+        'Kill iFolder & iFileName
+
+        iFile = Dir
     Next wb
-
-
+        
+    'Task completion message
+    MsgBox "The task has completed", vbInformation, "Task Completion"
 
 errorHandler:
 
     MsgBox "The following error has occurred: " & vbCrLf & vbCrLf & "Error Number:" & Err.Number & vbCrLf & _
-    "Error Description: " & Err.Description
+    "Error Description: " & Err.Description, vbExclamation, "Error Message"
 
 End Sub
 
