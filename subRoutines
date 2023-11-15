@@ -1,20 +1,20 @@
 'Open files
-Public Sub openFile(sFile As String)
+Public Sub openFile(iFilePath As String)
     
-    'Dim sFile As String
+    'Dim iFilePath As String
     'sFile = "C:\docs\data.xlsx"
     
     'Use Dir to check if file exists
-    If Dir(sFile) = vbNullString Then
+    If Dir(iFilePath) = vbNullString Then
 
         'if file does not exist display message
-        MsgBox "Could not find the file " & sFile
+        MsgBox "Could not find the file " & iFilePath
         Exit Sub
 
     End If
     
     'Code will only reach here if file exists
-    Workbooks.Open sFile
+    Workbooks.Open iFilePath
     
 End Sub
 
@@ -32,6 +32,20 @@ Public Sub convertCsvToXlsx()
 
     'error handling
     On Error GoTo errorHandler
+
+    'set up loop through iPath
+    Dim iFolder As String: iFolder = folderSelection.SelectedItem(1) & "\"
+    Dim iExt As String: iExt = "*.csv"
+    Dim iFile As Stirng: iFile = Dir(iFolder & iExt)
+    Dim iFileName As String
+    Dim iFilePath As String: iFolder & iFile
+    Dim iWorkbook As Workbook: Set iWorkbook = worksbooks.open(FileName:= iFilePath, ReadOnly:= True)
+
+    For each wb in iWorkbook
+
+        Call openFile(iFile)
+
+    Next workbook
 
 
 
