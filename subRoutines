@@ -1,70 +1,118 @@
-'Open files
-Private Sub openFile(iFilePath As String)
-    
-    'Dim iFilePath As String
-    'sFile = "C:\docs\data.xlsx"
-    
-    'Use Dir to check if file exists
-    If Dir(iFilePath) = vbNullString Then
-
-        'if file does not exist display message
-        MsgBox "Could not find the file " & iFilePath
-        Exit Sub
-
-    End If
-    
-    'Code will only reach here if file exists
-    Workbooks.Open iFilePath
-    
-End Sub
-
 'Convert .csv to .xlsx
 Private Sub convertCsvToXlsx()
-
-    Dim folderSelection As FileDialog: Set folderSelection = Application.FileDialog(msoFileDialogFolderPicker)
+    Dim iFolder As String, openwindow As Boolean: openwindow = False 'Change to open a window
     
-    With folderSelection
-        .AllowMultiSelect = False
-        .Title = "Select the folder with CSV Files"
-        .Show
-        If .SelectedItems.Count = 0 Then Exit Sub
-    End With
-
+    If openwindow = True Then
+        iFolder = selectFolder()
+        If iFolder = vbNullString Then Exit Sub
+    Else
+        iFolder = ThisWorkbook.Path & "\"
+    End If
+    
     'error handling
     On Error GoTo errorHandler
-
-    'set up loop through iPath
-    Dim iFolder As String: iFolder = folderSelection.SelectedItems(1) & "\"
+    
+    'Set up loop through iPath
     Dim iExt As String: iExt = "*.csv"
     Dim iFile As String: iFile = Dir(iFolder & iExt)
-    Dim iFileName As String
-    Dim iFilePath As String: iFilePath = iFolder & iFile
-    Dim iWorkbook As Workbook: Set iWorkbook = worksbooks.open(FileName:= iFilePath, ReadOnly:= True)
+    Dim iCsvFilePath As String, iTxtFilePath As String, iFileName As String, fileDateTime As String
+    Dim message As String, delimiter As String
+    Dim wb As Workbook
+    
+    If iFile = vbNullString Then message = MsgBox("There are no '.csv' files in the folder" & iFolder, vbExclamation, "Information Message")
 
-    For each wb in iWorkbook
+    Do While iFile <> vbNullString
 
-        Call openFile(iFilePath)
-        iFileName = CreateObject("Scripting.FileSystemObject").GetBaseName(iFile)
-
-        'xlsx saveAs
-        iWorkbook.SaveAs iFolder & iFileName & ".xlsx", FileFormat:=xlOpenXMLWorkbook
+        iCsvFilePath = iFolder & iFile
+        iTxtFilePath = iFolder & Left(iFile, Len(iFile) - 4) & ".txt"
+        Name iCsvFilePath As iTxtFilePath
         
-        'closes newly converted xlsx file
-        ActiveWorkbook.Close savechanges:= False
+        'Set wb = getWb(iFilePath)
+        Open iTxtFilePath For Input As #1
+        Dim num As Long, textLine As String, textLine1 As String
+        
+        Do While Not EOF(1) 'Loop until end of file
+            num = num + 1
+            Line Input #1, textLine1 'Read line 1 into variable
+            textLine = textLine & textLine1
+            If num >= 2 Then Exit Do
+        Loop
+        Close #1
+        
+        delimiter = csvDelimiter(textLine1)
+        
+        Set wb = Workbooks.Open(iTxtFilePath, Format:=6, delimiter:=delimiter)
+        
+        iFileName = CreateObject("Scripting.FileSystemObject").GetBaseName(iFile)
+        
+        'Save xlsx file
+        wb.SaveAs Filename:=Left(iCsvFilePath, Len(iCsvFilePath) - 4), FileFormat:=xlOpenXMLWorkbook
+        
+        'Closes xlsx file
+        wb.Close savechanges:=False
+        
+        'Sets fileDateTime format
+        'fileDateTime = FileDateTime(iCsvFilePath)
+        'fileDateTime = Format(fileDateTime, "yyyymmdd_hhmmss")
+        
+        'Moves the csv file
+        'Name iTxtFilePath As iFolder & "csv files" & "\" & fileDateTime & "_" & iFileName & ".csv"
+        Name iTxtFilePath As iFolder & "csv files" & "\" & iFileName & ".csv"
+    
+        'deletes the .csv file
+        'Kill iCsvFilePath
 
-        'deletes the csv file
-        'Kill iFolder & iFileName
-
-        iFile = Dir
-    Next wb
+        iFile = Dir(iFolder & iExt)
+    
+    Loop
         
     'Task completion message
-    MsgBox "The task has completed", vbInformation, "Task Completion"
+    'MsgBox "The task has completed", vbInformation, "Task Completion"
 
+    'Set folderSelection = Nothing
+    Set wb = Nothing
+    Exit Sub
+    
 errorHandler:
 
-    MsgBox "The following error has occurred: " & vbCrLf & vbCrLf & "Error Number:" & Err.Number & vbCrLf & _
+    MsgBox "The following error has occurred: " & vbCrLf & vbCrLf & "Error Number: " & Err.Number & vbCrLf & _
     "Error Description: " & Err.Description, vbExclamation, "Error Message"
 
 End Sub
 
+'Select Folder
+Private Function selectFolder() As String
+    Dim folderSelection As FileDialog: Set folderSelection = Application.FileDialog(msoFileDialogFolderPicker) 'Opens a folder selection window
+
+    With folderSelection
+        .Title = "Select the folder with '.csv' files"
+        .AllowMultiSelect = False
+        .InitialFileName = ThisWorkbook.Path & "\"
+        If .Show <> -1 Then Exit Function 'If cancel button has been clicked
+        If .SelectedItems.Count = 0 Then Exit Function
+    End With
+    
+    selectFolder = folderSelection.SelectedItems(1) & "\"
+    
+End Function
+
+Private Function csvDelimiter(textLine1 As String)
+    Dim pieces As Variant
+    Dim delimiters As String
+    Dim i As Long, cnt As Long, minCount As Long
+
+    delimiters = "|¦,;" & Chr(9) ' Chr(9)=Tab
+
+    For i = 1 To Len(delimiters)
+
+        pieces = Split(textLine1, Mid(delimiters, i, 1))
+        cnt = UBound(pieces)
+
+        If minCount < cnt Then
+            minCount = cnt
+            csvDelimiter = Mid(delimiters, i, 1)
+        End If
+
+    Next i
+
+End Function
